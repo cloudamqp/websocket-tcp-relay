@@ -1,0 +1,13 @@
+name: websocket-tcp-relay
+version: 0.1.0
+
+authors:
+  - Carl Hörberg <carl@cloudamqp.com>
+
+targets:
+  websocket-tcp-relay:
+    main: src/websocket-tcp-relay.cr
+
+crystal: 0.36.1
+
+license: Apache-2.0
