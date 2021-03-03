@@ -1,3 +1,3 @@
-module AMQPWebSocketProxy
-  VERSION = "0.1.0"
+module WebSocketTCPRelay
+  VERSION = {{ `shards version`.stringify }}
 end

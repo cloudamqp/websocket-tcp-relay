@@ -34,6 +34,10 @@ module WebSocketTCPRelay
       parser.on("-w PATH", "--webroot=PATH", "Directory from which to serve static content (default #{webroot})") do |v|
         webroot = v
       end
+      parser.on("-v", "--version", "Display version number") do
+        puts VERSION
+        exit
+      end
       parser.on("-h", "--help", "Show this help") do
         puts parser
         exit
