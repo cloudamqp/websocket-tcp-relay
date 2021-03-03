@@ -11,5 +11,6 @@ USER 2:2
 COPY --from=builder /etc/ssl/cert.pem /etc/ssl/
 COPY --from=builder /tmp/bin/* /
 VOLUME /webroot
+VOLUME /certs
 EXPOSE 8080
 ENTRYPOINT ["/websocket-tcp-relay"]
