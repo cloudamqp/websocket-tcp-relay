@@ -7,6 +7,18 @@ module WebSocketTCPRelay
         req = ctx.request
         remote_addr = req.remote_address.as(Socket::IPAddress)
         local_addr = req.local_address.as(Socket::IPAddress)
+        if fwd = req.headers["Forwarded"]?
+          if match = /^For=(([\d.]+)|\[([\d:]+)\])(:(\d{1,5}))?[;,]?/.match(fwd)
+            ip = match[2] || match[3]
+            port = match[5].try(&.to_i) || 0
+            remote_addr = Socket::IPAddress.new(ip, port)
+          else
+            puts "Invalid Forwarded header: '#{fwd}'"
+          end
+        elsif xfwd = req.headers["X-Forwarded-For"]?
+          ip = (idx = xfwd.index(',')) ? xfwd[0, idx] : xfwd
+          remote_addr = Socket::IPAddress.new(ip, 0)
+        end
         puts "#{remote_addr} connected"
         tcp_socket = TCPSocket.new(host, port, dns_timeout: 5, connect_timeout: 15)
         tcp_socket.tcp_nodelay = true
