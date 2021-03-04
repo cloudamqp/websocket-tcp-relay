@@ -17,5 +17,20 @@ Usage: websocket-tcp-relay [arguments]
     --tls-key=PATH                   TLS certificate key (default ./certs/privkey.pem)
     -P, --proxy-protocol             If the upstream expects the PROXY protocol (default false)
     -w PATH, --webroot=PATH          Directory from which to serve static content (default ./webroot)
+    -c PATH, --config=PATH           Config file
+    -v, --version                    Display version number
     -h, --help                       Show this help
+```
+
+Example config file:
+
+```ini
+[main]
+upstream = tcp://127.0.0.1:5672
+bind = 0.0.0.0
+port = 8080
+tls-cert = /etc/ssl/certs/mycert.pem
+tls-key = /etc/ssl/private/mykey.pem
+proxy-protocol = true
+webroot = /var/lib/wwwroot
 ```

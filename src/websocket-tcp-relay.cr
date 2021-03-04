@@ -1,4 +1,5 @@
 require "option_parser"
+require "ini"
 require "./websocket-tcp-relay/*"
 
 module WebSocketTCPRelay
@@ -33,6 +34,28 @@ module WebSocketTCPRelay
       end
       parser.on("-w PATH", "--webroot=PATH", "Directory from which to serve static content (default #{webroot})") do |v|
         webroot = v
+      end
+      parser.on("-c PATH", "--config=PATH", "Config file") do |v|
+        File.exists? v || abort "Config file not found"
+        config = INI.parse(v)
+        config.each do |name, section|
+          case name
+          when "name"
+            section.each do |key, value|
+              case key
+              when "uri" then upstream_uri = URI.parse(value)
+              when "bind" then bind_addr = value
+              when "port" then bind_port = value.to_i
+              when "tls-cert" then tls_cert_path = value
+              when "tls-key" then tls_key_path = value
+              when "proxy-protocol" then proxy_protocol = /^(true|1|on)$/.matches?(value)
+              when "webroot" then webroot = value
+              else abort "Unrecognized config: #{name}/#{key}"
+              end
+            end
+          else abort "Unrecognized config section: #{name}"
+          end
+        end
       end
       parser.on("-v", "--version", "Display version number") do
         puts VERSION
