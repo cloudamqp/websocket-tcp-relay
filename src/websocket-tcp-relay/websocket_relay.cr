@@ -8,7 +8,7 @@ module WebSocketTCPRelay
         remote_addr = req.remote_address.as(Socket::IPAddress)
         local_addr = req.local_address.as(Socket::IPAddress)
         if fwd = req.headers["Forwarded"]?
-          if match = /^For=(([\d.]+)|\[([\d:]+)\])(:(\d{1,5}))?[;,]?/.match(fwd)
+          if match = /^[Ff]or=(([\d.]+)|\[([\d:.A-Fa-f]+)\])(:(\d{1,5}))?[;,]?/.match(fwd)
             ip = match[2] || match[3]
             port = match[5].try(&.to_i) || 0
             remote_addr = Socket::IPAddress.new(ip, port)
@@ -17,7 +17,13 @@ module WebSocketTCPRelay
           end
         elsif xfwd = req.headers["X-Forwarded-For"]?
           ip = (idx = xfwd.index(',')) ? xfwd[0, idx] : xfwd
-          remote_addr = Socket::IPAddress.new(ip, 0)
+          port = 0
+          if xport = req.headers["X-Forwarded-Port"]?
+            port = xport.to_i
+          end
+          remote_addr = Socket::IPAddress.new(ip, port)
+        elsif realip = req.headers["X-Real-IP"]?
+          remote_addr = Socket::IPAddress.new(realip, 0)
         end
         puts "#{remote_addr} connected"
         tcp_socket = TCPSocket.new(host, port, dns_timeout: 5, connect_timeout: 15)
