@@ -1,0 +1,99 @@
+#!/bin/bash
+set -eu
+
+trap "cd '$PWD'; rm -rf debroot debian-binary control.tar.gz data.tar.gz" EXIT
+
+shards build --production --release --stats
+
+git_describe=$(git describe)
+pkg_version=${git_describe:1}
+pkg_revision=1
+
+mkdir debroot
+cd debroot
+
+mkdir -p usr/bin usr/share/doc/websocket-tcp-relay lib/systemd/system/ etc
+cp ../bin/* usr/bin/
+cp ../README.md usr/share/doc/websocket-tcp-relay/README
+cat > usr/share/doc/websocket-tcp-relay/copyright << EOF
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: WebSocket TCP Relay
+Upstream-Contact: support@cloudamqp.com
+Source: https://github.com/cloudamqp/websocket-tcp-relay
+
+Files: *
+Copyright: 2021, 84codes AB
+License: Apache-2.0
+EOF
+cat > lib/systemd/system/websocket-tcp-relay.service << 'EOF'
+[Unit]
+Description=WebSocket TCP Relay
+Documentation=https://github.com/cloudamqp/websocket-tcp-relay
+Requires=network.target
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/websocket-tcp-relay --config /etc/websocket-tcp-relay.ini
+Restart=on-failure
+User=www-data
+Group=www-data
+LimitNOFILE=1M
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
+EOF
+cat > etc/websocket-tcp-relay.ini << EOF
+[main]
+upstream = tcp://127.0.0.1:5672
+bind = 0.0.0.0
+port = 8080
+tls-cert = /etc/ssl/certs/mycert.pem
+tls-key = /etc/ssl/private/mykey.pem
+proxy-protocol = false
+webroot = /var/www/html
+EOF
+tar czf ../data.tar.gz [a-z]*
+
+mkdir DEBIAN
+find . -type f -not -path "./DEBIAN/*" -print0 | xargs -0 md5sum > DEBIAN/md5sums
+
+cat > DEBIAN/control << EOF
+Package: websocket-tcp-relay
+Version: $pkg_version-$pkg_revision
+Homepage: https://github.com/cloudamqp/websocket-tcp-relay
+Section: net
+Priority: optional
+Architecture: $(dpkg --print-architecture)
+Depends: openssl, systemd, libc6, libgc1c2
+Installed-Size: $(du -ks usr/ | cut -f 1)
+Maintainer: CloudAMQP Team <contact@cloudamqp.com>
+Description: WebSocket TCP Relay
+ Allows any TCP server to be exposed as a WebSocket endpoint
+EOF
+
+cat > DEBIAN/postinst << EOF
+#!/bin/sh -e
+deb-systemd-helper enable websocket-tcp-relay.service
+deb-systemd-invoke start websocket-tcp-relay.service
+EOF
+chmod +x DEBIAN/postinst
+
+cat > DEBIAN/prerm << EOF
+#!/bin/sh -e
+deb-systemd-invoke stop websocket-tcp-relay.service
+deb-systemd-helper purge websocket-tcp-relay.service
+EOF
+chmod +x DEBIAN/prerm
+
+cd DEBIAN
+tar czf ../../control.tar.gz ./*
+cd ..
+
+cd ..
+
+echo 2.0 > debian-binary
+
+. /etc/lsb-release
+
+ar r "websocket-tcp-relay_$pkg_version-$pkg_revision.$DISTRIB_CODENAME.deb" debian-binary control.tar.gz data.tar.gz
