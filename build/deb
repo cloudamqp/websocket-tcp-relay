@@ -17,6 +17,8 @@ else
   shards build --production --release --stats
 fi
 
+strip bin/*
+
 mkdir debroot
 cd debroot
 
@@ -30,16 +32,21 @@ bind = 127.0.0.1
 port = 15670
 proxy-protocol = false
 EOF
-
 cat > usr/share/doc/websocket-tcp-relay/copyright << EOF
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: WebSocket TCP Relay
 Upstream-Contact: support@cloudamqp.com
 Source: https://github.com/cloudamqp/websocket-tcp-relay
-
 Files: *
 Copyright: 2021, 84codes AB
 License: Apache-2.0
+EOF
+gzip -9 > usr/share/doc/websocket-tcp-relay/changelog.Debian.gz << EOF
+websocket-tcp-relay ($pkg_version-$pkg_revision) whatever; urgency=medium
+
+  * New upstream release.
+
+ -- CloudAMQP <contact@cloudamqp.com>  $(LC_ALL=C date -R)
 EOF
 cat > lib/systemd/system/websocket-tcp-relay.service << 'EOF'
 [Unit]
@@ -63,12 +70,12 @@ EOF
 cat > etc/websocket-tcp-relay.ini << EOF
 [main]
 upstream = tcp://127.0.0.1:5672
-bind = 0.0.0.0
-port = 8080
-tls-cert = /etc/ssl/certs/mycert.pem
-tls-key = /etc/ssl/private/mykey.pem
+bind = 127.0.0.1
+port = 15670
 proxy-protocol = false
 webroot = /var/www/html
+;tls-cert = /etc/ssl/certs/fullchain.pem
+;tls-key = /etc/ssl/private/privkey.pem
 EOF
 
 mkdir DEBIAN
@@ -84,8 +91,9 @@ Architecture: $architecture
 Depends: libc6, libssl1.1, libpcre3, zlib1g, libgcc1, $(dpkg -S libevent-2.1 | cut -d: -f1 | sort -u | paste -sd,)
 Installed-Size: $(du -ks usr/ | cut -f 1)
 Maintainer: CloudAMQP Team <contact@cloudamqp.com>
-Description: WebSocket TCP Relay
- Allows any TCP server to be exposed as a WebSocket endpoint
+Description: Expose any TCP server as a WebSocket server
+ A simple service that relay traffic between a WebSocket client
+ and a TCP server.
 EOF
 
 cat > DEBIAN/conffiles << EOF
@@ -108,12 +116,11 @@ chmod +x DEBIAN/prerm
 
 cd ..
 
-export GZIP=-9
-tar czf data.tar.gz --exclude=./DEBIAN -C ./debroot ./
-tar czf control.tar.gz -C ./debroot/DEBIAN ./
-echo 2.0 > debian-binary
-
 debdir=builds/debian/$DISTRIB_CODENAME
-mkdir -p "$debdir"
 debname=websocket-tcp-relay_$pkg_version-${pkg_revision}_$architecture.deb
-ar r "$debdir/$debname" debian-binary control.tar.gz data.tar.gz
+mkdir -p "$debdir"
+
+echo 2.0 > debian-binary
+tar c --directory debroot/DEBIAN . | gzip -9 > control.tar.gz
+tar c --directory debroot --exclude=./DEBIAN . | gzip -9 > data.tar.gz
+ar rc "$debdir/$debname" debian-binary control.tar.gz data.tar.gz
