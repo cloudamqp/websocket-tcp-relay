@@ -36,8 +36,7 @@ module WebSocketTCPRelay
         webroot = v
       end
       parser.on("-c PATH", "--config=PATH", "Config file") do |v|
-        File.exists? v || abort "Config file not found"
-        config = INI.parse(v)
+        config = File.open(v) { |f| INI.parse(f) }
         config.each do |name, section|
           case name
           when "name"
@@ -56,6 +55,8 @@ module WebSocketTCPRelay
           else abort "Unrecognized config section: #{name}"
           end
         end
+      rescue File::NotFoundError
+        abort "Config file not found"
       end
       parser.on("-v", "--version", "Display version number") do
         puts VERSION
