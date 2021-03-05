@@ -4,7 +4,21 @@ WebSocket server that relay traffic to any TCP server. It also serves static fil
 
 ## Installation
 
-TODO: Write installation instructions here
+Debian/Ubuntu:
+
+```bash
+wget -qO- https://packagecloud.io/cloudamqp/websocket-tcp-relay/gpgkey | sudo apt-key add -
+echo "deb https://packagecloud.io/cloudamqp/websocket-tcp-relay/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/websocket-tcp-relay.list
+
+sudo apt update
+sudo apt install websocket-tcp-relay
+```
+
+Docker/Podman:
+
+Docker images are published to [Docker Hub](https://hub.docker.com/repository/docker/cloudamqp/websocket-tcp-deplay). Fetch and run the latest version with:
+
+`docker run --rm -it -p 15670:15670 cloudamqp/websocket-tcp-relay --upstream tcp://container:5672`
 
 ## Usage
 
