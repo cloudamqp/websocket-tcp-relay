@@ -5,7 +5,7 @@ require "./websocket-tcp-relay/*"
 module WebSocketTCPRelay
   def self.run
     bind_addr = "localhost"
-    bind_port = ENV.fetch("PORT", "").to_i? || 8080
+    bind_port = ENV.fetch("PORT", "").to_i? || 15670
     webroot = "./webroot"
     tls_cert_path = ""
     tls_key_path = ""
