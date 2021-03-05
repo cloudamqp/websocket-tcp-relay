@@ -39,10 +39,10 @@ module WebSocketTCPRelay
         config = File.open(v) { |f| INI.parse(f) }
         config.each do |name, section|
           case name
-          when "name"
+          when "main"
             section.each do |key, value|
               case key
-              when "uri" then upstream_uri = URI.parse(value)
+              when "upstream" then upstream_uri = URI.parse(value)
               when "bind" then bind_addr = value
               when "port" then bind_port = value.to_i
               when "tls-cert" then tls_cert_path = value
