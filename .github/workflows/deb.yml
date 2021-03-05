@@ -1,0 +1,46 @@
+name: Deb
+on: [push]
+
+jobs:
+  build_deb:
+    name: Build
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+        os: [ubuntu-20.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install dependencies
+        run: sudo apt-get install -y libsystemd-dev dpkg fakeroot help2man lintian build-essential gcc pkg-config git tzdata libpcre3-dev libevent-dev libyaml-dev libgmp-dev libssl-dev libxml2-dev
+
+      - name: Install Crystal
+        run: |
+          wget https://crystal-lang.org/install.sh
+          chmod +x install.sh
+          sudo ./install.sh --crystal=0.36.1
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set ENVs
+        run: |
+          echo "CODENAME=$(lsb_release -cs)" >> $GITHUB_ENV
+          echo "VERSION=$(git describe --tags | cut -c2-)" >> $GITHUB_ENV
+
+      - name: Build deb package
+        run: build/deb ${{ env.VERSION }} 1 ${{ matrix.arch }}
+
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+
+      - name: Install packagecloud cli
+        run: gem install package_cloud
+
+      - name: Upload to packagecloud release repo
+        run: package_cloud push cloudamqp/websocket-tcp-relay/ubuntu/${{ env.CODENAME }} builds/debian/${{ env.CODENAME }}/websocket-tcp-relay_${{ env.VERSION }}-1_${{ matrix.arch }}.deb
+        env:
+          PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
+          #if: startsWith(github.ref, 'refs/tags/v')

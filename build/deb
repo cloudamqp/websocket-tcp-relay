@@ -3,11 +3,19 @@ set -eu
 
 trap "cd '$PWD'; rm -rf debroot debian-binary control.tar.gz data.tar.gz" EXIT
 
-shards build --production --release --stats
+. /etc/lsb-release
 
-git_describe=$(git describe)
-pkg_version=${git_describe:1}
-pkg_revision=1
+pkg_version=${1:-$(git describe --tags | cut -c2- )}
+pkg_revision=${2:-1}
+architecture=${3:-$(dpkg --print-architecture)}
+
+if [ "$architecture" != "$(dpkg --print-architecture)" ]
+then
+  shards install --production
+  build/cross-compile-with-docker src/websocket-tcp-relay.cr "ubuntu:$DISTRIB_RELEASE"
+else
+  shards build --production --release --stats
+fi
 
 mkdir debroot
 cd debroot
@@ -15,6 +23,14 @@ cd debroot
 mkdir -p usr/bin usr/share/doc/websocket-tcp-relay lib/systemd/system/ etc
 cp ../bin/* usr/bin/
 cp ../README.md usr/share/doc/websocket-tcp-relay/README
+cat > etc/websocket-tcp-relay.ini << EOF
+[main]
+upstream = tcp://127.0.0.1:5672
+bind = 127.0.0.1
+port = 15670
+proxy-protocol = false
+EOF
+
 cat > usr/share/doc/websocket-tcp-relay/copyright << EOF
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: WebSocket TCP Relay
@@ -43,6 +59,7 @@ ProtectSystem=full
 [Install]
 WantedBy=multi-user.target
 EOF
+
 cat > etc/websocket-tcp-relay.ini << EOF
 [main]
 upstream = tcp://127.0.0.1:5672
@@ -53,7 +70,6 @@ tls-key = /etc/ssl/private/mykey.pem
 proxy-protocol = false
 webroot = /var/www/html
 EOF
-tar czf ../data.tar.gz [a-z]*
 
 mkdir DEBIAN
 find . -type f -not -path "./DEBIAN/*" -print0 | xargs -0 md5sum > DEBIAN/md5sums
@@ -72,6 +88,10 @@ Description: WebSocket TCP Relay
  Allows any TCP server to be exposed as a WebSocket endpoint
 EOF
 
+cat > DEBIAN/conffiles << EOF
+/etc/websocket-tcp-relay.ini
+EOF
+
 cat > DEBIAN/postinst << EOF
 #!/bin/sh -e
 deb-systemd-helper enable websocket-tcp-relay.service
@@ -86,14 +106,11 @@ deb-systemd-helper purge websocket-tcp-relay.service
 EOF
 chmod +x DEBIAN/prerm
 
-cd DEBIAN
-tar czf ../../control.tar.gz ./*
 cd ..
 
-cd ..
-
+export GZIP=-9
+tar czf data.tar.gz --exclude=./DEBIAN -C ./debroot ./
+tar czf control.tar.gz -C ./debroot/DEBIAN ./
 echo 2.0 > debian-binary
-
-. /etc/lsb-release
 
 ar r "websocket-tcp-relay_$pkg_version-$pkg_revision.$DISTRIB_CODENAME.deb" debian-binary control.tar.gz data.tar.gz
