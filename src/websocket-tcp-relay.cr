@@ -7,8 +7,8 @@ module WebSocketTCPRelay
     bind_addr = "localhost"
     bind_port = ENV.fetch("PORT", "").to_i? || 8080
     webroot = "./webroot"
-    tls_cert_path = "./certs/fullchain.pem"
-    tls_key_path = "./certs/privkey.pem"
+    tls_cert_path = ""
+    tls_key_path = ""
     upstream_uri = nil
     proxy_protocol = false
 
@@ -82,7 +82,9 @@ module WebSocketTCPRelay
 
       address = nil
       protocol = "http"
-      if File.exists?(tls_cert_path) && File.exists?(tls_key_path)
+      if !tls_cert_path.empty? || !tls_key_path.empty?
+        File.exists?(tls_cert_path) || abort "Certificate not found"
+        File.exists?(tls_key_path) || abort "Private key not found"
         context = OpenSSL::SSL::Context::Server.new
         context.certificate_chain = tls_cert_path
         context.private_key = tls_key_path
