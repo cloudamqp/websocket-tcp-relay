@@ -5,6 +5,7 @@ jobs:
   build_deb:
     name: Build
     strategy:
+      fail-fast: false
       matrix:
         arch: [amd64, arm64]
         os: [ubuntu-20.04]
