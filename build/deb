@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -euo pipefail
 
 trap "cd '$PWD'; rm -rf debroot debian-binary control.tar.gz data.tar.gz" EXIT
 
@@ -81,7 +81,7 @@ Homepage: https://github.com/cloudamqp/websocket-tcp-relay
 Section: net
 Priority: optional
 Architecture: $architecture
-Depends: $(ldd usr/bin/* | awk '{print $1}' | xargs dpkg -S | cut -d: -f1 | sort -u | paste -sd',')
+Depends: libc6, libssl1.1, libpcre3, zlib1g, libgcc1, $(dpkg -S libevent-2.1 | cut -d: -f1 | sort -u | paste -sd,)
 Installed-Size: $(du -ks usr/ | cut -f 1)
 Maintainer: CloudAMQP Team <contact@cloudamqp.com>
 Description: WebSocket TCP Relay
