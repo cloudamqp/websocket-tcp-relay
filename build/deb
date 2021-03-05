@@ -80,7 +80,7 @@ Version: $pkg_version-$pkg_revision
 Homepage: https://github.com/cloudamqp/websocket-tcp-relay
 Section: net
 Priority: optional
-Architecture: $(dpkg --print-architecture)
+Architecture: $architecture
 Depends: openssl, systemd, libc6, libgc1c2
 Installed-Size: $(du -ks usr/ | cut -f 1)
 Maintainer: CloudAMQP Team <contact@cloudamqp.com>

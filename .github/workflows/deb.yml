@@ -38,7 +38,7 @@ jobs:
           ruby-version: '2.7'
 
       - name: Install packagecloud cli
-        run: gem install package_cloud
+        run: gem install --no-document package_cloud
 
       - name: Upload to packagecloud release repo
         run: package_cloud push cloudamqp/websocket-tcp-relay/ubuntu/${{ env.CODENAME }} builds/debian/${{ env.CODENAME }}/websocket-tcp-relay_${{ env.VERSION }}-1_${{ matrix.arch }}.deb
