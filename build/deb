@@ -81,7 +81,7 @@ Homepage: https://github.com/cloudamqp/websocket-tcp-relay
 Section: net
 Priority: optional
 Architecture: $architecture
-Depends: openssl, systemd, libc6, libgc1c2
+Depends: $(ldd usr/bin/* | awk '{print $1}' | xargs dpkg -S | cut -d: -f1 | sort -u | paste -sd',')
 Installed-Size: $(du -ks usr/ | cut -f 1)
 Maintainer: CloudAMQP Team <contact@cloudamqp.com>
 Description: WebSocket TCP Relay
@@ -113,7 +113,7 @@ tar czf data.tar.gz --exclude=./DEBIAN -C ./debroot ./
 tar czf control.tar.gz -C ./debroot/DEBIAN ./
 echo 2.0 > debian-binary
 
-debdir=builds/debian/$DISTRIB_CODENAME/
+debdir=builds/debian/$DISTRIB_CODENAME
 mkdir -p "$debdir"
 debname=websocket-tcp-relay_$pkg_version-${pkg_revision}_$architecture.deb
 ar r "$debdir/$debname" debian-binary control.tar.gz data.tar.gz
