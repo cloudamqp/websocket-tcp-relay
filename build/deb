@@ -12,12 +12,12 @@ architecture=${3:-$(dpkg --print-architecture)}
 if [ "$architecture" != "$(dpkg --print-architecture)" ]
 then
   shards install --production
-  build/cross-compile-with-docker src/websocket-tcp-relay.cr "ubuntu:$DISTRIB_RELEASE"
+  build/cross-compile-with-docker src/websocket-tcp-relay.cr "ubuntu:$DISTRIB_RELEASE" true
 else
   shards build --production --release --stats
+  strip bin/*
 fi
 
-strip bin/*
 
 mkdir debroot
 cd debroot

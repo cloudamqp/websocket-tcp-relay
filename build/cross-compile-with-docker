@@ -1,6 +1,7 @@
 #!/bin/bash -eux
 srcfile=$1
 image=${2:-ubuntu:20.04}
+strip=$3
 # cross-compile often fails in crystal 0.35, so retry
 set +e
 while true
@@ -38,3 +39,4 @@ $buildcmd
 rm $(basename "$srcfile" .cr).o
 mv $(basename "$srcfile" .cr) bin/
 EOF
+[ -n "$strip" ] && docker exec -i builder strip /work/bin/*
