@@ -22,7 +22,7 @@ strip bin/*
 mkdir debroot
 cd debroot
 
-mkdir -p usr/bin usr/share/doc/websocket-tcp-relay lib/systemd/system/ etc
+mkdir -p usr/bin usr/share/doc/websocket-tcp-relay lib/systemd/system/ etc usr/share/man/man1
 cp ../bin/* usr/bin/
 cp ../README.md usr/share/doc/websocket-tcp-relay/README
 cat > etc/websocket-tcp-relay.ini << EOF
@@ -40,6 +40,21 @@ Source: https://github.com/cloudamqp/websocket-tcp-relay
 Files: *
 Copyright: 2021, 84codes AB
 License: Apache-2.0
+EOF
+gzip -9 > usr/share/man/man1/websocket-tcp-relay.1.gz << EOF
+.TH websocket-tcp-relay "1" "$(date +'%B %Y')" "websocket-tcp-relay $pkg_version" "User Commands"
+.SH NAME
+websocket-tcp-relay \- Expose any TCP server as a WebSocket server
+.SH SYNOPSIS
+websocket-tcp-relay [arguments]
+.SH DESCRIPTION
+A simple service that relay traffic between a WebSocket client and a TCP server.
+.SH OPTIONS
+.TP
+\-\-help
+display all options
+.SH SEE ALSO
+https://github.com/cloudamqp/websocket-tcp-relay/#readme
 EOF
 gzip -9 > usr/share/doc/websocket-tcp-relay/changelog.Debian.gz << EOF
 websocket-tcp-relay ($pkg_version-$pkg_revision) whatever; urgency=medium
