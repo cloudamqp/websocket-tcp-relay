@@ -111,10 +111,6 @@ Description: Expose any TCP server as a WebSocket server
  and a TCP server.
 EOF
 
-cat > DEBIAN/conffiles << EOF
-/etc/websocket-tcp-relay.ini
-EOF
-
 cat > DEBIAN/postinst << EOF
 #!/bin/sh -e
 deb-systemd-helper enable websocket-tcp-relay.service
