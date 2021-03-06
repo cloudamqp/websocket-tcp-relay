@@ -38,5 +38,5 @@ cd /work
 $buildcmd
 rm $(basename "$srcfile" .cr).o
 mv $(basename "$srcfile" .cr) bin/
+[ -n "$strip" ] && strip bin/$(basename "$srcfile" .cr)
 EOF
-[ -n "$strip" ] && docker exec -i builder strip /work/bin/*
