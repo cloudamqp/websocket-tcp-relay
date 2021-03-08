@@ -103,7 +103,7 @@ Homepage: https://github.com/cloudamqp/websocket-tcp-relay
 Section: net
 Priority: optional
 Architecture: $architecture
-Depends: libc6, libssl1.1, libpcre3, zlib1g, libgcc1, $(dpkg -S libevent-2.1 | cut -d: -f1 | sort -u | paste -sd,)
+Depends: libc6, libssl1.1, libpcre3, zlib1g, libgcc-s1, libevent-2.1-7, libgc1c2
 Installed-Size: $(du -ks usr/ | cut -f 1)
 Maintainer: CloudAMQP Team <contact@cloudamqp.com>
 Description: Expose any TCP server as a WebSocket server
