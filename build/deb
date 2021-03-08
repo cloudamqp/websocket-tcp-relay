@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-trap "cd '$PWD'; rm -rf debroot debian-binary control.tar.gz data.tar.gz depends" EXIT
+trap "cd '$PWD'; rm -rf debroot debian-binary control.tar.gz data.tar.gz" EXIT
 
 . /etc/lsb-release
 
@@ -15,7 +15,6 @@ then
   build/cross-compile-with-docker src/websocket-tcp-relay.cr "ubuntu:$DISTRIB_RELEASE" true
 else
   shards build --production --release --stats
-  ldd bin/* | awk '{print $1}' | xargs dpkg -S | awk -F: "/$architecture/ {print \$1}" | sort -u | paste -sd, > depends
   strip bin/*
 fi
 
@@ -104,7 +103,7 @@ Homepage: https://github.com/cloudamqp/websocket-tcp-relay
 Section: net
 Priority: optional
 Architecture: $architecture
-Depends: $(cat depends)
+Depends: libc6, libssl1.1, libpcre3, zlib1g, libgcc1, $(dpkg -S libevent-2.1 | cut -d: -f1 | sort -u | paste -sd,)
 Installed-Size: $(du -ks usr/ | cut -f 1)
 Maintainer: CloudAMQP Team <contact@cloudamqp.com>
 Description: Expose any TCP server as a WebSocket server

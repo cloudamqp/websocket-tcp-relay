@@ -38,6 +38,5 @@ cd /work
 $buildcmd
 rm $(basename "$srcfile" .cr).o
 mv $(basename "$srcfile" .cr) bin/
-ldd bin/* | awk '{print \$1}' | xargs dpkg -S | awk -F: '/arm64/ {print \$1}' | sort -u | paste -sd, > depends
 [ -n "$strip" ] && strip bin/$(basename "$srcfile" .cr)
 EOF
