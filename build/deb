@@ -75,7 +75,7 @@ ExecStart=/usr/bin/websocket-tcp-relay --config /etc/websocket-tcp-relay.ini
 Restart=on-failure
 User=www-data
 Group=www-data
-LimitNOFILE=1M
+LimitNOFILE=1048576
 ProtectSystem=full
 
 [Install]
