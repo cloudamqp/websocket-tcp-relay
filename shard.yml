@@ -8,6 +8,6 @@ targets:
   websocket-tcp-relay:
     main: src/websocket-tcp-relay.cr
 
-crystal: 0.36.1
+crystal: 1.0.0
 
 license: Apache-2.0
