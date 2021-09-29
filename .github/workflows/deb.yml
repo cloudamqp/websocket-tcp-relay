@@ -1,4 +1,4 @@
-name: Deb
+name: Debian Packaging
 on:
   workflow_dispatch:
   push:
@@ -50,4 +50,4 @@ jobs:
           curl -fsS -u "${{ secrets.packagecloud_token }}:" -XPOST \
             -F "package[distro_version_id]=${DIST_ID}" \
             -F 'package[package_file]=@${PKG_FILE}' \
-            https://packagecloud.io/api/v1/repos/cloudamqp/myra-mq/packages.json
+            https://packagecloud.io/api/v1/repos/${{ github.repository }}/packages.json
