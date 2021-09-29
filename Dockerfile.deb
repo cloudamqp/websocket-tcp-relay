@@ -8,7 +8,7 @@ WORKDIR /tmp
 
 # Install deps
 RUN apt-get update && \
-    apt-get install -y libsystemd-dev dpkg fakeroot help2man lintian tzdata curl jq
+    DEBIAN_FRONTEND=noninteractive apt-get install -y libsystemd-dev dpkg fakeroot help2man lintian tzdata curl jq
 
 # Downlaod packagecloud's dist file for later use
 RUN curl -fsSO -u "${packagecloud_token}:" https://packagecloud.io/api/v1/distributions.json
