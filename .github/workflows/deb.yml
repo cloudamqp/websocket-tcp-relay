@@ -29,13 +29,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build image that will build a deb pkg and upload it to PackageCloud
+      - name: Build image and output result to builds
         uses: docker/build-push-action@v2
         with:
           context: .
           file: Dockerfile.deb
           platforms: linux/${{ matrix.arch }}
           build-args: |
-            baseimage=84codes/crystal:1.1.1-${{ matrix.os }}
+            build_image=84codes/crystal:1.1.1-${{ matrix.os }}
             pkg_version=${{ env.PKG_VERSION }}
-            packagecloud_token=${{ secrets.PACKAGECLOUD_TOKEN }}
+          outputs: builds
+
+      - name: Upload deb to packagecloud
+        run: |
+          . /etc/os-release && \
+          curl -fsSO -u "${{ secrets.packagecloud_token }}}:" https://packagecloud.io/api/v1/distributions.json && \
+          curl -fsS -u "${{ secrets.packagecloud_token }}:" -XPOST \
+            -F 'package[distro_version_id]=$(jq ".deb[] | select(.index_name == \"${ID}\").versions[] | select(.index_name == \"${VERSION_CODENAME}\").id" distributions.json)' \
+            -F 'package[package_file]=@$(find builds -name "*.deb" | head -1)' \
+            https://packagecloud.io/api/v1/repos/cloudamqp/myra-mq/packages.json
