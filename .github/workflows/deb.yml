@@ -16,8 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: 84codes/crystal:1.1.1-${{ matrix.os }}
-      options:
-        platform: linux/${{ matrix.arch }}
+      options: |
+        --platform linux/${{ matrix.arch }}
     steps:
       - name: Install dependencies
         run: apt-get install -y libsystemd-dev dpkg fakeroot help2man lintian build-essential gcc pkg-config git tzdata libpcre3-dev libevent-dev libyaml-dev libgmp-dev libssl-dev libxml2-dev
