@@ -1,26 +1,13 @@
 #!/bin/bash
-set -euo pipefail
-
-trap "cd '$PWD'; rm -rf debroot debian-binary control.tar.gz data.tar.gz" EXIT
-
-. /etc/lsb-release
-
 pkg_version=${1:-$(git describe --tags | cut -c2- )}
 pkg_revision=${2:-1}
-architecture=${3:-$(dpkg --print-architecture)}
+architecture=$(dpkg --print-architecture)
 
-if [ "$architecture" != "$(dpkg --print-architecture)" ]
-then
-  shards install --production
-  build/cross-compile-with-docker src/websocket-tcp-relay.cr "ubuntu:$DISTRIB_RELEASE" true
-else
-  shards build --production --release --stats
-  strip bin/*
-fi
-
+shards build --production --release
+strip bin/*
 
 mkdir debroot
-cd debroot
+cd debroot || exit 1
 
 mkdir -p usr/bin usr/share/doc/websocket-tcp-relay lib/systemd/system/ etc usr/share/man/man1
 cp ../bin/* usr/bin/
@@ -131,8 +118,9 @@ chmod +x DEBIAN/prerm
 
 cd ..
 
-debdir=builds/debian/$DISTRIB_CODENAME
-debname=websocket-tcp-relay_$pkg_version-${pkg_revision}_$architecture.deb
+. /etc/os-release
+debdir=builds/$ID/$VERSION_CODENAME
+debname=websocket-tcp-relay_${pkg_version}-${pkg_revision}_${architecture}.deb
 mkdir -p "$debdir"
 
 echo 2.0 > debian-binary
