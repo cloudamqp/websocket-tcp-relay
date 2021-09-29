@@ -49,5 +49,5 @@ jobs:
           PKG_FILE=$(find builds -name "*.deb" | head -1)
           curl -fsS -u "${{ secrets.packagecloud_token }}:" -XPOST \
             -F "package[distro_version_id]=${DIST_ID}" \
-            -F 'package[package_file]=@${PKG_FILE}' \
+            -F "package[package_file]=@${PKG_FILE}" \
             https://packagecloud.io/api/v1/repos/${{ github.repository }}/packages.json
