@@ -7,6 +7,8 @@ on:
 
 jobs:
   build_deb:
+    env:
+      DOCKER_BUILDKIT: 1
     name: Build
     strategy:
       fail-fast: false
