@@ -7,8 +7,6 @@ on:
 
 jobs:
   build_deb:
-    env:
-      DOCKER_BUILDKIT: 1
     name: Build
     strategy:
       fail-fast: false
@@ -16,27 +14,24 @@ jobs:
         arch: [amd64, arm64]
         os: [ubuntu-18.04, ubuntu-20.04]
     runs-on: ubuntu-latest
-    container:
-      image: 84codes/crystal:1.1.1-${{ matrix.os }}
-      options: --platform linux/${{ matrix.arch }}
     steps:
-      - name: Install dependencies
-        run: apt-get update && apt-get install -y libsystemd-dev dpkg fakeroot help2man lintian build-essential gcc pkg-config git tzdata libpcre3-dev libevent-dev libyaml-dev libgmp-dev libssl-dev libxml2-dev
+      - name: Enable qemu-user-static
+        run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Set ENVs
+      - name: Run in container
         run: |
-          echo "CODENAME=$(lsb_release -cs)" >> $GITHUB_ENV
-          echo "VERSION=$(git describe --tags | cut -c2-)" >> $GITHUB_ENV
+          docker run --platform linux/${{ matrix.arch }} --rm 84codes/crystal:1.1.1-${{ matrix.os }} sh << EOF
+            set -eux
+            apt-get update
+            apt-get install -y libsystemd-dev dpkg fakeroot help2man lintian build-essential gcc pkg-config git tzdata libpcre3-dev libevent-dev libyaml-dev libgmp-dev libssl-dev libxml2-dev
+            git clone ${{ github.server_url }}/${{ github.repository }}
+            cd websocket-tcp-relay
+            build/deb
 
-      - name: Build deb package
-        run: build/deb ${{ env.VERSION }} 1
+          EOF
+          "apt update && apt install -y gcc g++ make git && git clone https://github.com/jacajack/liblightmodbus.git && cd liblightmodbus && git checkout origin/dev-v3.0 && make -C test && ./test/main-test"
 
-      - uses: actions/setup-ruby@v1
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.7'
 
