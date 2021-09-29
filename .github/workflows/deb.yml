@@ -1,4 +1,4 @@
-name: Debian Packaging
+name: Debian packages
 on:
   workflow_dispatch:
   push:
