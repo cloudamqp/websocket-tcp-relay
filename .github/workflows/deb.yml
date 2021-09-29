@@ -43,8 +43,9 @@ jobs:
       - name: Upload deb to packagecloud
         run: |
           . /etc/os-release
+          set -eux
           curl -fsSO -u "${{ secrets.packagecloud_token }}:" https://packagecloud.io/api/v1/distributions.json
-          DIST_ID=$(jq ".deb[] | select(.index_name == \"${ID}\").versions[] | select(.index_name == \"${VERSION_CODENAME}\").id" distributions.json
+          DIST_ID=$(jq ".deb[] | select(.index_name == \"${ID}\").versions[] | select(.index_name == \"${VERSION_CODENAME}\").id" distributions.json)
           PKG_FILE=$(find builds -name "*.deb" | head -1)
           curl -fsS -u "${{ secrets.packagecloud_token }}:" -XPOST \
             -F "package[distro_version_id]=${DIST_ID}" \
