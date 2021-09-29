@@ -20,16 +20,14 @@ jobs:
 
       - name: Run in container
         run: |
-          docker run --platform linux/${{ matrix.arch }} --rm 84codes/crystal:1.1.1-${{ matrix.os }} sh << EOF
-            set -eux
-            apt-get update
-            apt-get install -y libsystemd-dev dpkg fakeroot help2man lintian build-essential gcc pkg-config git tzdata libpcre3-dev libevent-dev libyaml-dev libgmp-dev libssl-dev libxml2-dev
-            git clone ${{ github.server_url }}/${{ github.repository }}
-            cd websocket-tcp-relay
+          docker run --platform linux/${{ matrix.arch }} --rm 84codes/crystal:1.1.1-${{ matrix.os }} sh -c \
+          "set -eux &&
+            apt-get update &&
+            apt-get install -y libsystemd-dev dpkg fakeroot help2man lintian build-essential gcc pkg-config git tzdata libpcre3-dev libevent-dev libyaml-dev libgmp-dev libssl-dev libxml2-dev &&
+            git clone ${{ github.server_url }}/${{ github.repository }} &&
+            cd websocket-tcp-relay &&
             build/deb
-
-          EOF
-          "apt update && apt install -y gcc g++ make git && git clone https://github.com/jacajack/liblightmodbus.git && cd liblightmodbus && git checkout origin/dev-v3.0 && make -C test && ./test/main-test"
+          "
 
       - uses: ruby/setup-ruby@v1
         with:
