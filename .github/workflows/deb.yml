@@ -13,16 +13,14 @@ jobs:
       matrix:
         arch: [amd64, arm64]
         os: [ubuntu-18.04, ubuntu-20.04]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    container:
+      image: 84codes/crystal:1.1.1-${{ matrix.os }}
+      options:
+        platform: linux/${{ matrix.arch }}
     steps:
       - name: Install dependencies
-        run: sudo apt-get install -y libsystemd-dev dpkg fakeroot help2man lintian build-essential gcc pkg-config git tzdata libpcre3-dev libevent-dev libyaml-dev libgmp-dev libssl-dev libxml2-dev
-
-      - name: Install Crystal
-        run: |
-          wget https://crystal-lang.org/install.sh
-          chmod +x install.sh
-          sudo ./install.sh --crystal=0.36.1
+        run: apt-get install -y libsystemd-dev dpkg fakeroot help2man lintian build-essential gcc pkg-config git tzdata libpcre3-dev libevent-dev libyaml-dev libgmp-dev libssl-dev libxml2-dev
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -35,7 +33,7 @@ jobs:
           echo "VERSION=$(git describe --tags | cut -c2-)" >> $GITHUB_ENV
 
       - name: Build deb package
-        run: build/deb ${{ env.VERSION }} 1 ${{ matrix.arch }}
+        run: build/deb ${{ env.VERSION }} 1
 
       - uses: actions/setup-ruby@v1
         with:
