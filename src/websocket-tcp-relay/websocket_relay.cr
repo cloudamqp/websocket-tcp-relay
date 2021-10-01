@@ -5,26 +5,8 @@ module WebSocketTCPRelay
     def self.new(host : String, port : Int32, tls : Bool, proxy_protocol : Bool)
       ::HTTP::WebSocketHandler.new do |ws, ctx|
         req = ctx.request
-        remote_addr = req.remote_address.as(Socket::IPAddress)
         local_addr = req.local_address.as(Socket::IPAddress)
-        if fwd = req.headers["Forwarded"]?
-          if match = /^[Ff]or=(([\d.]+)|\[([\d:.A-Fa-f]+)\])(:(\d{1,5}))?[;,]?/.match(fwd)
-            ip = match[2] || match[3]
-            port = match[5].try(&.to_i) || 0
-            remote_addr = Socket::IPAddress.new(ip, port)
-          else
-            puts "Invalid Forwarded header: '#{fwd}'"
-          end
-        elsif xfwd = req.headers["X-Forwarded-For"]?
-          ip = (idx = xfwd.index(',')) ? xfwd[0, idx] : xfwd
-          port = 0
-          if xport = req.headers["X-Forwarded-Port"]?
-            port = xport.to_i
-          end
-          remote_addr = Socket::IPAddress.new(ip, port)
-        elsif realip = req.headers["X-Real-IP"]?
-          remote_addr = Socket::IPAddress.new(realip, 0)
-        end
+        remote_addr = remote_adress(req.headers) || req.remote_address.as(Socket::IPAddress)
         puts "#{remote_addr} connected"
         tcp_socket = TCPSocket.new(host, port, dns_timeout: 5, connect_timeout: 15)
         tcp_socket.tcp_nodelay = true
@@ -74,6 +56,27 @@ module WebSocketTCPRelay
         puts "#{remote_addr} disconnected: #{ex.inspect}"
         socket.try(&.close) rescue nil
         ws.close rescue nil
+      end
+    end
+
+    def self.remote_address(headers)
+      if fwd = headers["Forwarded"]?
+        if match = /^[Ff]or=(([\d.]+)|\[([\d:.A-Fa-f]+)\])(:(\d{1,5}))?[;,]?/.match(fwd)
+          ip = match[2] || match[3]
+          port = match[5].try(&.to_i) || 0
+          Socket::IPAddress.new(ip, port)
+        else
+          puts "Invalid Forwarded header: '#{fwd}'"
+        end
+      elsif xfwd = headers["X-Forwarded-For"]?
+        ip = (idx = xfwd.index(',')) ? xfwd[0, idx] : xfwd
+        port = 0
+        if xport = headers["X-Forwarded-Port"]?
+          port = xport.to_i
+        end
+        Socket::IPAddress.new(ip, port)
+      elsif ip = headers["X-Real-IP"]?
+        Socket::IPAddress.new(ip, 0)
       end
     end
   end
