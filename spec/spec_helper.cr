@@ -1,2 +1,2 @@
 require "spec"
-require "../src/amqp-websocket-proxy"
+require "../src/websocket-tcp-relay/websocket_relay"

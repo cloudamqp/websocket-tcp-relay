@@ -1,6 +1,6 @@
 require "./spec_helper"
 
-describe Amqp::Websocket::Proxy do
+describe WebSocketTCPRelay::WebSocketRelay do
   # TODO: Write tests
 
   it "works" do
