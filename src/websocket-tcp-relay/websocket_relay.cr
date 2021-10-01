@@ -6,7 +6,7 @@ module WebSocketTCPRelay
       ::HTTP::WebSocketHandler.new do |ws, ctx|
         req = ctx.request
         local_addr = req.local_address.as(Socket::IPAddress)
-        remote_addr = remote_adress(req.headers) || req.remote_address.as(Socket::IPAddress)
+        remote_addr = remote_address(req.headers) || req.remote_address.as(Socket::IPAddress)
         puts "#{remote_addr} connected"
         tcp_socket = TCPSocket.new(host, port, dns_timeout: 5, connect_timeout: 15)
         tcp_socket.tcp_nodelay = true
