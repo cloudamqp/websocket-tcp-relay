@@ -1,4 +1,4 @@
-FROM 84codes/crystal:1.1.1-alpine-latest AS builder
+FROM 84codes/crystal:1.2.2-alpine-latest AS builder
 
 WORKDIR /tmp
 COPY shard.yml shard.lock ./
