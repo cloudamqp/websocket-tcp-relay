@@ -16,7 +16,7 @@ sudo apt install websocket-tcp-relay
 
 Docker/Podman:
 
-Docker images are published to [Docker Hub](https://hub.docker.com/repository/docker/cloudamqp/websocket-tcp-deplay). Fetch and run the latest version with:
+Docker images are published to [Docker Hub](https://hub.docker.com/repository/docker/cloudamqp/websocket-tcp-relay). Fetch and run the latest version with:
 
 `docker run --rm -it -p 15670:15670 cloudamqp/websocket-tcp-relay --upstream tcp://container:5672`
 
