@@ -1,8 +1,10 @@
 require "http/server"
+require "openssl"
 
 module WebSocketTCPRelay
   class WebSocketRelay
     def self.new(host : String, port : Int32, tls : Bool, proxy_protocol : Bool)
+      tls_ctx = OpenSSL::SSL::Context::Client.new if tls
       ::HTTP::WebSocketHandler.new do |ws, ctx|
         req = ctx.request
         local_addr = req.local_address.as(Socket::IPAddress)
@@ -13,8 +15,8 @@ module WebSocketTCPRelay
         tcp_socket.sync = true
         tcp_socket.read_buffering = false
         socket =
-          if tls
-            OpenSSL::SSL::Socket::Client.new(tcp_socket, hostname: host).tap do |c|
+          if ctx = tls_ctx
+            OpenSSL::SSL::Socket::Client.new(tcp_socket, ctx, hostname: host).tap do |c|
               c.sync_close = true
               c.sync = true
               c.read_buffering = false
