@@ -42,14 +42,14 @@ module WebSocketTCPRelay
           when "main"
             section.each do |key, value|
               case key
-              when "upstream" then upstream_uri = URI.parse(value)
-              when "bind" then bind_addr = value
-              when "port" then bind_port = value.to_i
-              when "tls-cert" then tls_cert_path = value
-              when "tls-key" then tls_key_path = value
+              when "upstream"       then upstream_uri = URI.parse(value)
+              when "bind"           then bind_addr = value
+              when "port"           then bind_port = value.to_i
+              when "tls-cert"       then tls_cert_path = value
+              when "tls-key"        then tls_key_path = value
               when "proxy-protocol" then proxy_protocol = /^(true|1|on)$/.matches?(value)
-              when "webroot" then webroot = value
-              else abort "Unrecognized config: #{name}/#{key}"
+              when "webroot"        then webroot = value
+              else                       abort "Unrecognized config: #{name}/#{key}"
               end
             end
           else abort "Unrecognized config section: #{name}"
@@ -78,7 +78,7 @@ module WebSocketTCPRelay
 
       server = HTTP::Server.new([
         WebSocketRelay.new(u.host || "127.0.0.1", u.port || 5672, u.scheme == "tls", proxy_protocol),
-        HTTP::StaticFileHandler.new(webroot, fallthrough: false, directory_listing: false)
+        HTTP::StaticFileHandler.new(webroot, fallthrough: false, directory_listing: false),
       ])
 
       address = nil
