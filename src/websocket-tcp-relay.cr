@@ -98,6 +98,8 @@ module WebSocketTCPRelay
       puts "Upstream: #{u}"
       puts "PROXY protocol: #{proxy_protocol ? "enabled" : "disabled"}"
       puts "Web root: #{Dir.exists?(webroot) ? File.expand_path webroot : "Not found"}"
+      Signal::INT.trap { server.close }
+      Signal::TERM.trap { server.close }
       server.listen
     else
       abort "An upstream is required, must specify the --upstream flag"
