@@ -12,23 +12,31 @@ module WebSocketTCPRelay
         puts "#{remote_addr} connected"
         tcp_socket = TCPSocket.new(host, port, dns_timeout: 5, connect_timeout: 15)
         tcp_socket.tcp_nodelay = true
-        tcp_socket.sync = true
         tcp_socket.read_buffering = false
         socket =
           if ctx = tls_ctx
             OpenSSL::SSL::Socket::Client.new(tcp_socket, ctx, hostname: host).tap do |c|
               c.sync_close = true
-              c.sync = true
               c.read_buffering = false
             end
           else
             tcp_socket
           end
         if proxy_protocol
-          tcp_v = remote_addr.@family == Socket::Family::INET6 ? "TCP6" : "TCP4"
-          proxy = "PROXY #{tcp_v} #{remote_addr.address} #{local_addr.address} #{remote_addr.port} #{local_addr.port}\r\n"
-          socket.write proxy.to_slice
+          if remote_addr.@family.inet6? || local_addr.@family.inet6?
+            socket << "PROXY TCP6 "
+            socket << "::ffff:" if remote_addr.@family.inet?
+            socket << remote_addr.address << " "
+            socket << "::ffff:" if local_addr.@family.inet?
+            socket << local_addr.address << " "
+          else
+            socket << "PROXY TCP4 " << remote_addr.address << " " << local_addr.address << " "
+          end
+          socket << remote_addr.port << " " << local_addr.port << "\r\n"
+          socket.flush
         end
+        socket.as?(TCPSocket).try &.sync = true
+        socket.as?(OpenSSL::SSL::Socket::Client).try &.sync = true
 
         ws.on_binary do |bytes|
           socket.write(bytes)
