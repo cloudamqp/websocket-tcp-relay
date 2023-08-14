@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [amd64, arm64]
-        os: [ubuntu-18.04, ubuntu-20.04, debian-buster, debian-bullseye]
+        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04, debian-buster, debian-bullseye]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
