@@ -22,6 +22,7 @@ jobs:
           flavor: |
             latest=true
           tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
             type=semver,pattern={{version}}
 
       - name: Set up QEMU
