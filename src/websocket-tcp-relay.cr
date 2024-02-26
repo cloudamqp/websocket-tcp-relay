@@ -11,6 +11,7 @@ module WebSocketTCPRelay
     tls_key_path = ""
     upstream_uri = nil
     proxy_protocol = false
+    prefix = "/"
 
     OptionParser.parse do |parser|
       parser.banner = "Usage: #{File.basename PROGRAM_NAME} [arguments]"
@@ -35,6 +36,9 @@ module WebSocketTCPRelay
       parser.on("-w PATH", "--webroot=PATH", "Directory from which to serve static content (default #{webroot})") do |v|
         webroot = v
       end
+      parser.on("--prefix=PATH", "Path prefix (default #{prefix})") do |v|
+        prefix = v
+      end
       parser.on("-c PATH", "--config=PATH", "Config file") do |v|
         config = File.open(v) { |f| INI.parse(f) }
         config.each do |name, section|
@@ -49,6 +53,7 @@ module WebSocketTCPRelay
               when "tls-key"        then tls_key_path = value
               when "proxy-protocol" then proxy_protocol = /^(true|1|on)$/.matches?(value)
               when "webroot"        then webroot = value
+              when "prefix"         then prefix = value
               else                       abort "Unrecognized config: #{name}/#{key}"
               end
             end
@@ -78,6 +83,7 @@ module WebSocketTCPRelay
 
       server = HTTP::Server.new([
         WebSocketRelay.new(u.host || "127.0.0.1", u.port || 5672, u.scheme == "tls", proxy_protocol),
+        PrefixHandler.new(prefix),
         HTTP::StaticFileHandler.new(webroot, fallthrough: false, directory_listing: false),
       ])
 
@@ -98,6 +104,7 @@ module WebSocketTCPRelay
       puts "Upstream: #{u}"
       puts "PROXY protocol: #{proxy_protocol ? "enabled" : "disabled"}"
       puts "Web root: #{Dir.exists?(webroot) ? File.expand_path webroot : "Not found"}"
+      puts "Path: #{prefix}"
       Signal::INT.trap { server.close }
       Signal::TERM.trap { server.close }
       server.listen
