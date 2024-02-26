@@ -6,7 +6,7 @@ COPY src/ src/
 RUN shards build --production --release --no-debug
 
 FROM alpine:latest
-RUN apk add --no-cache libssl1.1 pcre2 libevent libgcc
+RUN apk add --no-cache libssl3 pcre2 libevent libgcc
 COPY --from=builder /tmp/bin/* /usr/bin/
 USER 2:2
 EXPOSE 15670
