@@ -3,17 +3,18 @@ require "http/server/handler"
 class PrefixHandler
   include HTTP::Handler
 
-  def initialize(@prefix : String)
-    raise "Prefix has to start and end with /" unless @prefix.starts_with?('/') && @prefix.ends_with?('/')
-    @prefix = @prefix[..-2]
+  def initialize(prefix : String)
+    @prefix = "/#{prefix.strip('/')}/"
   end
 
   def call(context)
-    if context.request.path.starts_with? @prefix
-      context.request.path = context.request.path[@prefix.bytesize..]
+    if @prefix == "//"
+      call_next(context)
+    elsif context.request.path.starts_with? @prefix
+      context.request.path = context.request.path[@prefix.bytesize - 1..]
       call_next(context)
     else
-      context.response.status_code = 404
+      context.response.respond_with_status(404)
     end
   end
 end
