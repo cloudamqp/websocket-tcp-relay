@@ -8,6 +8,10 @@ targets:
   websocket-tcp-relay:
     main: src/websocket-tcp-relay.cr
 
+dependencies:
+  amq-protocol:
+    github: cloudamqp/amq-protocol.cr
+
 crystal: 1.0.0
 
 license: Apache-2.0
