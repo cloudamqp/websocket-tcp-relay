@@ -14,6 +14,10 @@ module WebSocketTCPRelay
         tcp_socket = TCPSocket.new(host, port, dns_timeout: 5, connect_timeout: 15)
         tcp_socket.tcp_nodelay = true
         tcp_socket.read_buffering = false
+        tcp_socket.keepalive = true
+        tcp_socket.tcp_keepalive_idle = 60
+        tcp_socket.tcp_keepalive_interval = 10
+        tcp_socket.tcp_keepalive_count = 3
         socket =
           if ctx = tls_ctx
             OpenSSL::SSL::Socket::Client.new(tcp_socket, ctx, hostname: host).tap do |c|
