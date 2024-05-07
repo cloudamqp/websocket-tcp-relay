@@ -1,5 +1,6 @@
 require "http/server"
 require "openssl"
+require "amq-protocol"
 
 module WebSocketTCPRelay
   class WebSocketRelay
@@ -38,20 +39,39 @@ module WebSocketTCPRelay
         socket.as?(TCPSocket).try &.sync = true
         socket.as?(OpenSSL::SSL::Socket::Client).try &.sync = true
 
-        ws.on_binary do |bytes|
-          socket.write(bytes)
-        end
-
         ws.on_close do |_code, _message|
           socket.close
         end
 
+        amqp_protocol = Channel(Bool).new
+        first_bytes = true
+        ws.on_binary do |bytes|
+          if first_bytes
+            first_bytes = false
+            if bytes == AMQ::Protocol::PROTOCOL_START_0_9_1
+              amqp_protocol.send true
+            else
+              amqp_protocol.send false
+            end
+          end
+          socket.write(bytes)
+        end
         spawn(name: "WS #{remote_addr}") do
           begin
-            count = 0
-            buffer = Bytes.new(4096)
-            while (count = socket.read(buffer)) > 0
-              ws.send(buffer[0, count])
+            if amqp_protocol.receive
+              mem = IO::Memory.new(4096)
+              loop do
+                frame = AMQ::Protocol::Frame.from_io(socket)
+                frame.to_io(mem, IO::ByteFormat::NetworkEndian)
+                ws.send(mem.to_slice)
+                mem.clear
+              end
+            else
+              buffer = Bytes.new(4096)
+              count = 0
+              while (count = socket.read(buffer)) > 0
+                ws.send(buffer[0, count])
+              end
             end
             puts "#{remote_addr} disconnected by server"
           rescue ex
