@@ -2,6 +2,8 @@ name: Debian packages
 on:
   workflow_dispatch:
   push:
+    branches:
+      - 'main'
     tags:
       - 'v*.*.*'
 
@@ -41,6 +43,7 @@ jobs:
           outputs: builds
 
       - name: Upload deb to packagecloud
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           set -eux
           curl -fsSO -u "${{ secrets.packagecloud_token }}:" https://packagecloud.io/api/v1/distributions.json
