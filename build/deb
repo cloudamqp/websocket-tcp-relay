@@ -6,6 +6,14 @@ architecture=$(dpkg --print-architecture)
 shards build --production --release
 strip bin/*
 
+# dpkg-shlibdeps requires presence of `debian/control`
+apt-get update && apt-get install dpkg-dev --yes
+mkdir debian
+touch debian/control
+shlib_depends=$(dpkg-shlibdeps -O -e bin/* 2> /dev/null);
+depends=${shlib_depends#shlibs:Depends=}
+rm -r debian
+
 mkdir debroot
 cd debroot || exit 1
 
@@ -90,7 +98,7 @@ Homepage: https://github.com/cloudamqp/websocket-tcp-relay
 Section: net
 Priority: optional
 Architecture: $architecture
-Depends: $(ldd ../bin/* | awk '/=>/ {print $3}' | xargs dpkg -S | awk -F: "/$(dpkg --print-architecture)/ { print \$1 }" | sort -u | paste -sd,)
+Depends: $depends
 Installed-Size: $(du -ks usr/ | cut -f 1)
 Maintainer: CloudAMQP Team <contact@cloudamqp.com>
 Description: Expose any TCP server as a WebSocket server
