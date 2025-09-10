@@ -7,8 +7,8 @@ WebSocket server that relay traffic to any TCP server. It also serves static fil
 Debian/Ubuntu:
 
 ```bash
-wget -qO- https://packagecloud.io/cloudamqp/websocket-tcp-relay/gpgkey | sudo apt-key add -
-echo "deb https://packagecloud.io/cloudamqp/websocket-tcp-relay/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/websocket-tcp-relay.list
+wget -qO- https://packagecloud.io/cloudamqp/websocket-tcp-relay/gpgkey | sudo gpg --dearmor -o /etc/apt/keyrings/cloudamqp-websocket-tcp-relay.gpg
+echo "deb [signed-by=/etc/apt/keyrings/cloudamqp-websocket-tcp-relay.gpg] https://packagecloud.io/cloudamqp/websocket-tcp-relay/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/websocket-tcp-relay.list
 
 sudo apt update
 sudo apt install websocket-tcp-relay
