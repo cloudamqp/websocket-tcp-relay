@@ -30,6 +30,7 @@ Usage: websocket-tcp-relay [arguments]
     --tls-cert=PATH                  TLS certificate + chain (default ./certs/fullchain.pem)
     --tls-key=PATH                   TLS certificate key (default ./certs/privkey.pem)
     -P, --proxy-protocol             If the upstream expects the PROXY protocol (default false)
+    --sub-protocols=protocols        Comma separated list of protocols to accept in Sec-WebSocket-Protocol
     -w PATH, --webroot=PATH          Directory from which to serve static content (default ./webroot)
     -c PATH, --config=PATH           Config file
     -v, --version                    Display version number
