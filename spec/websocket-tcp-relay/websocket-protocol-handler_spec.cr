@@ -9,10 +9,11 @@ def with_relay(protocols : Enumerable(String) = Iterator(String).empty, **kwargs
       tls:            false,
       proxy_protocol: false,
     }.merge(kwargs)
-    relay = WebSocketTCPRelay::WebSocketRelay.new(**relay_args)
     protocol_handler = WebSocketTCPRelay::WebSocketProtocolHandler.new(protocols)
     TCPServer.open(0) do |server|
-      http = HTTP::Server.new({protocol_handler, relay})
+      http = HTTP::Server.new({protocol_handler}) do |ctx|
+        ctx.response.status = HTTP::Status::NO_CONTENT
+      end
       http.bind server
       spawn { http.listen }
       Fiber.yield
@@ -29,13 +30,7 @@ describe WebSocketTCPRelay::WebSocketProtocolHandler do
   describe "Sec-WebSocket-Protocol" do
     it "should not be set if no protocol configured" do
       with_relay do |socket|
-        headers : HTTP::Headers = HTTP::Headers.new
-        headers["Connection"] = "Upgrade"
-        headers["Upgrade"] = "websocket"
-        headers["Sec-WebSocket-Version"] = "13"
-        headers["Sec-WebSocket-Key"] = "random secret"
-
-        handshake = HTTP::Request.new("GET", "/", headers)
+        handshake = HTTP::Request.new("GET", "/")
         handshake.to_io(socket)
         handshake_response = HTTP::Client::Response.from_io(socket, ignore_body: true)
         response_headers = handshake_response.headers
@@ -46,10 +41,6 @@ describe WebSocketTCPRelay::WebSocketProtocolHandler do
     it "should be set if requested value is configured" do
       with_relay(protocols: {"amqp"}) do |socket|
         headers : HTTP::Headers = HTTP::Headers.new
-        headers["Connection"] = "Upgrade"
-        headers["Upgrade"] = "websocket"
-        headers["Sec-WebSocket-Version"] = "13"
-        headers["Sec-WebSocket-Key"] = "random secret"
         headers["Sec-WebSocket-Protocol"] = "amqp"
 
         handshake = HTTP::Request.new("GET", "/", headers)
@@ -64,10 +55,6 @@ describe WebSocketTCPRelay::WebSocketProtocolHandler do
     it "should be set if requested value is one of many configured" do
       with_relay(protocols: {"mqtt", "amqp", "smtp"}) do |socket|
         headers : HTTP::Headers = HTTP::Headers.new
-        headers["Connection"] = "Upgrade"
-        headers["Upgrade"] = "websocket"
-        headers["Sec-WebSocket-Version"] = "13"
-        headers["Sec-WebSocket-Key"] = "random secret"
         headers["Sec-WebSocket-Protocol"] = "amqp"
 
         handshake = HTTP::Request.new("GET", "/", headers)
@@ -82,10 +69,6 @@ describe WebSocketTCPRelay::WebSocketProtocolHandler do
     it "should not be set if requested value is not configured" do
       with_relay(protocols: {"amqp"}) do |socket|
         headers : HTTP::Headers = HTTP::Headers.new
-        headers["Connection"] = "Upgrade"
-        headers["Upgrade"] = "websocket"
-        headers["Sec-WebSocket-Version"] = "13"
-        headers["Sec-WebSocket-Key"] = "random secret"
         headers["Sec-WebSocket-Protocol"] = "mqtt"
 
         handshake = HTTP::Request.new("GET", "/", headers)
