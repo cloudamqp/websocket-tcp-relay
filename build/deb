@@ -3,11 +3,11 @@ pkg_version=${1:-$(git describe --tags | cut -c2- )}
 pkg_revision=${2:-1}
 architecture=$(dpkg --print-architecture)
 
+apt-get update && apt-get install libssl-dev dpkg-dev --yes
 shards build --production --release
 strip bin/*
 
 # dpkg-shlibdeps requires presence of `debian/control`
-apt-get update && apt-get install dpkg-dev --yes
 mkdir debian
 touch debian/control
 shlib_depends=$(dpkg-shlibdeps -O -e bin/* 2> /dev/null);
