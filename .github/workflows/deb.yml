@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [amd64, arm64]
-        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, debian-bullseye, debian-bookworm]
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-26.04, debian-bullseye, debian-bookworm, debian-trixie]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,7 +38,7 @@ jobs:
           file: Dockerfile.deb
           platforms: linux/${{ matrix.arch }}
           build-args: |
-            build_image=84codes/crystal:1.13.3-${{ matrix.os }}
+            build_image=84codes/crystal:latest-${{ matrix.os }}
             pkg_version=${{ env.PKG_VERSION }}
           outputs: builds
 
