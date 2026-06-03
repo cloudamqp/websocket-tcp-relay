@@ -1,5 +1,5 @@
 name: websocket-tcp-relay
-version: 1.0.8
+version: 1.0.9
 
 authors:
   - Carl Hörberg <carl@cloudamqp.com>
