@@ -12,6 +12,7 @@ module WebSocketTCPRelay
     upstream_uri = nil
     proxy_protocol = false
     prefix = "/"
+    sub_protocols = [] of String
 
     OptionParser.parse do |parser|
       parser.banner = "Usage: #{File.basename PROGRAM_NAME} [arguments]"
@@ -39,6 +40,9 @@ module WebSocketTCPRelay
       parser.on("--prefix=PATH", "Path prefix (default #{prefix})") do |v|
         prefix = v
       end
+      parser.on("--sub-protocols=protocols", "Comma separated list of protocols to accept in Sec-WebSocket-Protocol") do |v|
+        sub_protocols = v.split(",", remove_empty: true).map(&.strip)
+      end
       parser.on("-c PATH", "--config=PATH", "Config file") do |v|
         config = File.open(v) { |f| INI.parse(f) }
         config.each do |name, section|
@@ -54,6 +58,7 @@ module WebSocketTCPRelay
               when "proxy-protocol" then proxy_protocol = /^(true|1|on)$/.matches?(value)
               when "webroot"        then webroot = value
               when "prefix"         then prefix = value
+              when "sub-protocols"  then sub_protocols = value.split(",", remove_empty: true).map(&.strip)
               else                       abort "Unrecognized config: #{name}/#{key}"
               end
             end
@@ -82,6 +87,7 @@ module WebSocketTCPRelay
       MIME.register(".mjs", "text/javascript;charset=utf-8") # ecmascript modules
 
       server = HTTP::Server.new([
+        WebSocketProtocolHandler.new(sub_protocols),
         WebSocketRelay.new(u.host || "127.0.0.1", u.port || 5672, u.scheme == "tls", proxy_protocol),
         PrefixHandler.new(prefix),
         HTTP::StaticFileHandler.new(webroot, fallthrough: false, directory_listing: false),
@@ -104,6 +110,7 @@ module WebSocketTCPRelay
       puts "Upstream: #{u}"
       puts "PROXY protocol: #{proxy_protocol ? "enabled" : "disabled"}"
       puts "Web root: #{Dir.exists?(webroot) ? File.expand_path webroot : "Not found"}"
+      puts "Sub protocols: #{sub_protocols.join(", ")}"
       puts "Path: #{prefix}"
       Signal::INT.trap { server.close }
       Signal::TERM.trap { server.close }

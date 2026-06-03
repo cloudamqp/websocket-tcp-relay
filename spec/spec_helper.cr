@@ -1,2 +1,2 @@
 require "spec"
-require "../src/websocket-tcp-relay/websocket_relay"
+require "../src/websocket-tcp-relay/*"
