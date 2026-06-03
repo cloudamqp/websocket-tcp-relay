@@ -82,7 +82,7 @@ module WebSocketTCPRelay
       MIME.register(".mjs", "text/javascript;charset=utf-8") # ecmascript modules
 
       server = HTTP::Server.new([
-        WebSocketRelay.new(u.host || "127.0.0.1", u.port || 5672, u.scheme == "tls", proxy_protocol),
+        WebSocketRelay.new(u.hostname || "127.0.0.1", u.port || 5672, u.scheme == "tls", proxy_protocol),
         PrefixHandler.new(prefix),
         HTTP::StaticFileHandler.new(webroot, fallthrough: false, directory_listing: false),
       ])
